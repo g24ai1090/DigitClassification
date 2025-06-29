@@ -8,10 +8,10 @@ matrix:
 python-version: [3.13.5]
 steps:
       - name: Check out repository code
-          uses: actions/checkout@v3
+        uses: actions/checkout@v3
 
       - name: Set up Python
-          run: |
+        run: |
           echo "The ${{ github.repository }} repository has been cloned to the runner."
           echo "The workflow is now ready to test your code on the runner."
           echo "List files in the repository"
@@ -19,7 +19,7 @@ steps:
           echo "This job's status is ${{ job.status }}."
 
       - name: Install dependencies
-          run: pip3 install --no-cache-dir -r requirements.txt
+        run: pip3 install --no-cache-dir -r requirements.txt
 
       - name: Run experiment
           run: python plot_digits_classification.py
