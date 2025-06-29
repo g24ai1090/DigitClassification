@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from sklearn import datasets, metrics, svm
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 
 def load_and_visualize_digits():
     digits = datasets.load_digits()
@@ -14,12 +14,42 @@ def load_and_visualize_digits():
 def preprocess_data(digits):
     n_samples = len(digits.images)
     data = digits.images.reshape((n_samples, -1))
-    return train_test_split(data, digits.target, test_size=0.5, shuffle=False)
+    return data, digits.target
 
-def train_classifier(X_train, y_train):
-    clf = svm.SVC(gamma=0.001)
-    clf.fit(X_train, y_train)
-    return clf
+def train_classifier_with_tuning(data, target):
+    dev_sizes = [0.3, 0.4, 0.5]
+    param_grid = {
+        'C': [0.1, 1, 10],
+        'gamma': [0.001, 0.01, 0.1]
+    }
+
+    best_score = 0
+    best_clf = None
+    best_dev_size = None
+
+    for dev_size in dev_sizes:
+        X_train, X_test, y_train, y_test = train_test_split(
+            data, target, test_size=dev_size, shuffle=True, random_state=42
+        )
+
+        grid = GridSearchCV(svm.SVC(), param_grid, cv=5)
+        grid.fit(X_train, y_train)
+        score = grid.score(X_test, y_test)
+
+        if score > best_score:
+            best_score = score
+            best_clf = grid.best_estimator_
+            best_dev_size = dev_size
+
+    print("Best Dev Size:", best_dev_size)
+    print("Best Parameters:", best_clf.get_params())
+    print("Best Score:", best_score)
+
+    # Return train/test split for evaluation
+    X_train, X_test, y_train, y_test = train_test_split(
+        data, target, test_size=best_dev_size, shuffle=True, random_state=42
+    )
+    return best_clf, X_train, X_test, y_train, y_test
 
 def predict(clf, X_test):
     return clf.predict(X_test)
